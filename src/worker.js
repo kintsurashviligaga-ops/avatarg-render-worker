@@ -1,19 +1,27 @@
 import { createClient } from "@supabase/supabase-js";
 
-// ===============================
-// Supabase Client
-// ===============================
+function requireEnv(name) {
+  const v = process.env[name];
+  if (!v) {
+    console.error(`❌ Missing env var: ${name}`);
+    process.exit(1);
+  }
+  return v;
+}
+
 const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
+  requireEnv("SUPABASE_URL"),
+  requireEnv("SUPABASE_SERVICE_ROLE_KEY")
 );
 
-console.log("🌀 Render worker started");
+console.log("🟢 Render worker started");
 
-// ===============================
-// Job Polling Loop
-// ===============================
+let isPolling = false;
+
 async function pollJobs() {
+  if (isPolling) return;
+  isPolling = true;
+
   try {
     const { data, error } = await supabase.rpc("fetch_next_render_job");
 
@@ -26,28 +34,22 @@ async function pollJobs() {
       return; // no jobs
     }
 
-    console.log("🎬 Processing job:", data.id);
-    console.log("Payload:", data.payload);
+    console.log("🎬 Got job:", data.id);
 
-    // ⏳ აქ იქნება რეალური render logic (ffmpeg / AI / image)
-    await new Promise((r) => setTimeout(r, 2000));
+    // TODO: render logic here
 
-    await supabase
-      .from("render_jobs")
-      .update({
-        status: "done",
-        finished_at: new Date().toISOString(),
-        result: { ok: true }
-      })
-      .eq("id", data.id);
-
-    console.log("✅ Job completed:", data.id);
   } catch (err) {
-    console.error("❌ Worker crash:", err);
+    console.error("❌ Worker error:", err);
+  } finally {
+    isPolling = false;
   }
 }
 
-// ===============================
-// Start polling
-// ===============================
-setInterval(pollJobs, 5000);
+// 🔁 KEEP PROCESS ALIVE
+setInterval(pollJobs, 3000);
+
+// 🛑 Graceful shutdown (Fly sends SIGTERM)
+process.on("SIGTERM", () => {
+  console.log("🛑 SIGTERM received, shutting down gracefully");
+  process.exit(0);
+});
