@@ -1,0 +1,16 @@
+app = "avatarg-render-worker"
+primary_region = "ams"
+
+[build]
+  dockerfile = "Dockerfile"
+
+  [env]
+    NODE_ENV = "production"
+
+    [processes]
+      worker = "npm run start"
+
+      [[vm]]
+        cpu_kind = "shared"
+          cpus = 1
+            memory_mb = 1024

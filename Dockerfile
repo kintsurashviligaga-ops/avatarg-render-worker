@@ -1,20 +1,29 @@
 FROM node:20-bullseye
 
+# ===============================
+# System deps (fonts, ffmpeg-ready)
+# ===============================
 RUN apt-get update && \
-    apt-get install -y ffmpeg fontconfig && \
-        rm -rf /var/lib/apt/lists/*
+    apt-get install -y \
+          fontconfig \
+                fonts-dejavu-core \
+                    && rm -rf /var/lib/apt/lists/*
 
-        WORKDIR /app
+                    # ===============================
+                    # App setup
+                    # ===============================
+                    WORKDIR /app
 
-        COPY package.json package-lock.json* ./
-        RUN npm install --omit=dev
+                    # Copy package files FIRST (important for ESM)
+                    COPY package.json package-lock.json* ./
+                    RUN npm install
 
-        COPY fonts/NotoSansGeorgian-Regular.ttf /usr/share/fonts/truetype/NotoSansGeorgian-Regular.ttf
-        RUN fc-cache -f -v
+                    # Copy rest of the app
+                    COPY . .
 
-        COPY src ./src
+                    # Font cache (optional, safe)
+                    RUN fc-cache -f || true
 
-        ENV NODE_ENV=production
-        EXPOSE 8080
+                    ENV NODE_ENV=production
 
-        CMD ["npm","run","start"]
+                    CMD ["npm", "run", "start"]
