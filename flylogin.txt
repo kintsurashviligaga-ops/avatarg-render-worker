@@ -1,0 +1,3 @@
+failed opening browser. Copy the url (https://fly.io/app/auth/cli/66756d367463327835733669636c62793267766f6e6661776e696e6977637969) into a browser and continue
+Opening https://fly.io/app/auth/cli/66756d367463327835733669636c62793267766f6e6661776e696e6977637969 ...
+

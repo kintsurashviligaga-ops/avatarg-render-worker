@@ -1,29 +1,15 @@
 FROM node:20-bullseye
 
-# ===============================
-# System deps (fonts, ffmpeg-ready)
-# ===============================
-RUN apt-get update && \
-    apt-get install -y \
-          fontconfig \
-                fonts-dejavu-core \
-                    && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
 
-                    # ===============================
-                    # App setup
-                    # ===============================
-                    WORKDIR /app
+# Copy package files first for better caching
+COPY package.json package-lock.json* ./
+RUN npm install --omit=dev
 
-                    # Copy package files FIRST (important for ESM)
-                    COPY package.json package-lock.json* ./
-                    RUN npm install
+# Copy app
+COPY . .
 
-                    # Copy rest of the app
-                    COPY . .
+ENV NODE_ENV=production
 
-                    # Font cache (optional, safe)
-                    RUN fc-cache -f || true
-
-                    ENV NODE_ENV=production
-
-                    CMD ["npm", "run", "start"]
+# Worker-only app: no HTTP port, no EXPOSE
+CMD ["npm", "run", "worker"]
