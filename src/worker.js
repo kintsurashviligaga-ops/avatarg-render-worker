@@ -1,37 +1,32 @@
 import { createClient } from "@supabase/supabase-js";
 
-// ===============================
-// Env validation
-// ===============================
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-  console.error("❌ Missing required env vars:");
-  console.error("   - SUPABASE_URL:", SUPABASE_URL ? "✅ set" : "❌ missing");
-  console.error(
-    "   - SUPABASE_SERVICE_ROLE_KEY:",
-    SUPABASE_SERVICE_ROLE_KEY ? "✅ set" : "❌ missing"
-  );
-  console.error("🛑 Worker will not start until env vars are provided.");
-  process.exit(1);
+function requireEnv(name) {
+  const v = process.env[name];
+  if (!v) {
+    console.error(`❌ Missing env var: ${name}`);
+    process.exit(1);
+  }
+  return v;
 }
 
 // ===============================
 // Supabase Client
 // ===============================
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+const supabase = createClient(
+  requireEnv("SUPABASE_URL"),
+  requireEnv("SUPABASE_SERVICE_ROLE_KEY")
+);
 
 console.log("🌀 Render worker started");
 
 // ===============================
-// Safe polling (no overlap)
+// Job Polling Loop
 // ===============================
-let isRunning = false;
+let isPolling = false;
 
 async function pollJobs() {
-  if (isRunning) return;
-  isRunning = true;
+  if (isPolling) return;
+  isPolling = true;
 
   try {
     const { data, error } = await supabase.rpc("fetch_next_render_job");
@@ -46,12 +41,11 @@ async function pollJobs() {
     }
 
     console.log("🎬 Processing job:", data.id);
-    console.log("Payload:", data.payload);
 
-    // ⏳ TODO: real render logic (ffmpeg / AI / image)
+    // ⏳ აქ იქნება რეალური render logic (ffmpeg / AI / image)
     await new Promise((r) => setTimeout(r, 2000));
 
-    const { error: updateError } = await supabase
+    const { error: updErr } = await supabase
       .from("render_jobs")
       .update({
         status: "done",
@@ -60,8 +54,8 @@ async function pollJobs() {
       })
       .eq("id", data.id);
 
-    if (updateError) {
-      console.error("❌ Job update error:", updateError.message);
+    if (updErr) {
+      console.error("❌ Update job error:", updErr.message);
       return;
     }
 
@@ -69,22 +63,25 @@ async function pollJobs() {
   } catch (err) {
     console.error("❌ Worker crash:", err?.message ?? err);
   } finally {
-    isRunning = false;
+    isPolling = false;
   }
 }
 
 // ===============================
-// Start polling
+// Keep alive + schedule
 // ===============================
-pollJobs(); // run immediately
 setInterval(pollJobs, 5000);
+pollJobs(); // run immediately at boot
 
-// graceful shutdown
-process.on("SIGINT", () => {
-  console.log("🛑 SIGINT received. Shutting down worker...");
+// Make sure Node never exits
+process.stdin.resume();
+
+// Graceful shutdown
+process.on("SIGTERM", () => {
+  console.log("🛑 SIGTERM received. Shutting down...");
   process.exit(0);
 });
-process.on("SIGTERM", () => {
-  console.log("🛑 SIGTERM received. Shutting down worker...");
+process.on("SIGINT", () => {
+  console.log("🛑 SIGINT received. Shutting down...");
   process.exit(0);
 });
