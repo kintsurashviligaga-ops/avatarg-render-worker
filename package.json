@@ -4,7 +4,9 @@
   "private": true,
   "type": "commonjs",
   "scripts": {
-    "start": "node src/server.js & node src/worker.js"
+    "start": "node src/worker.js",
+    "worker": "node src/worker.js",
+    "server": "node src/server.js"
   },
   "dependencies": {
     "express": "^4.19.2",
