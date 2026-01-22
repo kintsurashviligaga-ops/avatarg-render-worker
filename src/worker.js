@@ -9,19 +9,13 @@ function requireEnv(name) {
   return v;
 }
 
-// ===============================
-// Supabase Client
-// ===============================
 const supabase = createClient(
   requireEnv("SUPABASE_URL"),
   requireEnv("SUPABASE_SERVICE_ROLE_KEY")
 );
 
-console.log("🌀 Render worker started");
+console.log("🟢 Render worker started");
 
-// ===============================
-// Job Polling Loop
-// ===============================
 let isPolling = false;
 
 async function pollJobs() {
@@ -40,48 +34,22 @@ async function pollJobs() {
       return; // no jobs
     }
 
-    console.log("🎬 Processing job:", data.id);
+    console.log("🎬 Got job:", data.id);
 
-    // ⏳ აქ იქნება რეალური render logic (ffmpeg / AI / image)
-    await new Promise((r) => setTimeout(r, 2000));
+    // TODO: render logic here
 
-    const { error: updErr } = await supabase
-      .from("render_jobs")
-      .update({
-        status: "done",
-        finished_at: new Date().toISOString(),
-        result: { ok: true }
-      })
-      .eq("id", data.id);
-
-    if (updErr) {
-      console.error("❌ Update job error:", updErr.message);
-      return;
-    }
-
-    console.log("✅ Job completed:", data.id);
   } catch (err) {
-    console.error("❌ Worker crash:", err?.message ?? err);
+    console.error("❌ Worker error:", err);
   } finally {
     isPolling = false;
   }
 }
 
-// ===============================
-// Keep alive + schedule
-// ===============================
-setInterval(pollJobs, 5000);
-pollJobs(); // run immediately at boot
+// 🔁 KEEP PROCESS ALIVE
+setInterval(pollJobs, 3000);
 
-// Make sure Node never exits
-process.stdin.resume();
-
-// Graceful shutdown
+// 🛑 Graceful shutdown (Fly sends SIGTERM)
 process.on("SIGTERM", () => {
-  console.log("🛑 SIGTERM received. Shutting down...");
-  process.exit(0);
-});
-process.on("SIGINT", () => {
-  console.log("🛑 SIGINT received. Shutting down...");
+  console.log("🛑 SIGTERM received, shutting down gracefully");
   process.exit(0);
 });
