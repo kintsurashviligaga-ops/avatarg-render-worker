@@ -1,8 +1,4 @@
-import express from "express";
 import { createClient } from "@supabase/supabase-js";
-
-const app = express();
-const PORT = process.env.PORT || 8080;
 
 // ===============================
 // Supabase Client
@@ -12,16 +8,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-// ===============================
-// Health endpoint (Fly checks)
-// ===============================
-app.get("/health", (_req, res) => {
-  res.status(200).send("OK");
-});
-
-app.listen(PORT, () => {
-  console.log(`✅ Avatar G Render Worker listening on ${PORT}`);
-});
+console.log("🌀 Render worker started");
 
 // ===============================
 // Job Polling Loop
@@ -42,7 +29,7 @@ async function pollJobs() {
     console.log("🎬 Processing job:", data.id);
     console.log("Payload:", data.payload);
 
-    // 🔧 აქ იქნება რეალური render logic
+    // ⏳ აქ იქნება რეალური render logic (ffmpeg / AI / image)
     await new Promise((r) => setTimeout(r, 2000));
 
     await supabase
@@ -64,4 +51,3 @@ async function pollJobs() {
 // Start polling
 // ===============================
 setInterval(pollJobs, 5000);
-console.log("🌀 Job polling started (5s)");
