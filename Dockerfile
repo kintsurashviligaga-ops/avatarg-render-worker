@@ -1,12 +1,27 @@
 FROM node:20-bullseye
 
-WORKDIR /app
+# --- system deps (ffmpeg აუცილებელია) ---
+RUN apt-get update && \
+    apt-get install -y ffmpeg ca-certificates && \
+        rm -rf /var/lib/apt/lists/*
 
-COPY package.json package-lock.json ./
-RUN npm install --omit=dev
+        # --- app dir ---
+        WORKDIR /app
 
-COPY . .
+        # --- deps ---
+        COPY package.json package-lock.json ./
+        RUN npm ci --omit=dev
 
-ENV NODE_ENV=production
+        # --- app code ---
+        COPY . .
 
-CMD ["npm", "run", "worker"]
+        # --- env ---
+        ENV NODE_ENV=production
+        ENV FONT_DIR=/app/fonts
+        ENV FFMPEG_BIN=ffmpeg
+
+        # --- sanity check (optional but useful) ---
+        RUN ffmpeg -version
+
+        # --- run worker directly (ყველაზე სტაბილური Fly-ზე) ---
+        CMD ["node", "src/worker.js"]
