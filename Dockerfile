@@ -24,7 +24,7 @@ RUN apk add --no-cache \
     fontconfig \
     ttf-dejavu
 
-# Create fonts directory
+# Create fonts directory (empty for now)
 RUN mkdir -p /app/fonts
 
 WORKDIR /app
@@ -33,9 +33,6 @@ WORKDIR /app
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package.json ./package.json
-
-# Copy fonts if exists
-COPY fonts/ /app/fonts/ 2>/dev/null || true
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && \
