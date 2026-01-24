@@ -8,7 +8,7 @@ RUN npm ci --only=production
 
 # Copy TypeScript source and config
 COPY tsconfig.json ./
-COPY worker/ ./worker/
+COPY src/ ./worker/
 
 # Build TypeScript
 RUN npm install -g typescript && \
