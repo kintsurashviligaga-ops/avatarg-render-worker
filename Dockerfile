@@ -8,9 +8,9 @@ RUN npm ci --only=production
 
 # Copy TypeScript source and config
 COPY tsconfig.json ./
-COPY src/ ./src/
+COPY worker/ ./worker/
 
-# Build TypeScript (adjust rootDir)
+# Build TypeScript
 RUN npm install -g typescript && \
     tsc && \
     npm uninstall -g typescript
@@ -18,20 +18,14 @@ RUN npm install -g typescript && \
 # Production image
 FROM node:20-alpine
 
-# Install FFmpeg and tools
+# Install FFmpeg and required tools
 RUN apk add --no-cache \
     ffmpeg \
     fontconfig \
-    wget \
-    unzip \
-    ca-certificates
+    ttf-dejavu
 
-# Install Georgian fonts
-RUN mkdir -p /app/fonts && \
-    wget -q -O /tmp/noto.zip https://noto-website-2.storage.googleapis.com/pkgs/NotoSansGeorgian-unhinted.zip && \
-    unzip -j /tmp/noto.zip "*.ttf" -d /app/fonts && \
-    rm /tmp/noto.zip && \
-    fc-cache -f
+# Create fonts directory
+RUN mkdir -p /app/fonts
 
 WORKDIR /app
 
@@ -39,6 +33,9 @@ WORKDIR /app
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package.json ./package.json
+
+# Copy fonts if exists
+COPY fonts/ /app/fonts/ 2>/dev/null || true
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && \

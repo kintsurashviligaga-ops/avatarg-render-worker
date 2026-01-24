@@ -9,11 +9,11 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": "./worker",
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "types": ["node"]
   },
-  "include": ["src/**/*"],
+  "include": ["worker/**/*"],
   "exclude": ["node_modules", "dist"]
 }
