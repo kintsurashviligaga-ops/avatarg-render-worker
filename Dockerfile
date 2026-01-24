@@ -1,27 +1,31 @@
-FROM node:20-bullseye
+FROM node:20-slim
 
-# --- system deps (ffmpeg აუცილებელია) ---
-RUN apt-get update && \
-    apt-get install -y ffmpeg ca-certificates && \
-        rm -rf /var/lib/apt/lists/*
+# --------------------
+# System dependencies
+# --------------------
+RUN apt-get update \
+  && apt-get install -y ffmpeg ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
-        # --- app dir ---
-        WORKDIR /app
+    # --------------------
+    # App setup
+    # --------------------
+    WORKDIR /app
 
-        # --- deps ---
-        COPY package.json package-lock.json ./
-        RUN npm ci --omit=dev
+    # Install deps first (better cache)
+    COPY package.json package-lock.json ./
+    RUN npm ci --omit=dev
 
-        # --- app code ---
-        COPY . .
+    # Copy app source
+    COPY . .
 
-        # --- env ---
-        ENV NODE_ENV=production
-        ENV FONT_DIR=/app/fonts
-        ENV FFMPEG_BIN=ffmpeg
+    # --------------------
+    # Environment
+    # --------------------
+    ENV NODE_ENV=production
+    ENV FFMPEG_BIN=ffmpeg
 
-        # --- sanity check (optional but useful) ---
-        RUN ffmpeg -version
-
-        # --- run worker directly (ყველაზე სტაბილური Fly-ზე) ---
-        CMD ["node", "src/worker.js"]
+    # --------------------
+    # Start EXACT worker
+    # --------------------
+    CMD ["node", "src/worker.js"]
