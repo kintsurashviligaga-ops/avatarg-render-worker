@@ -23,7 +23,7 @@ RUN apk add --no-cache \
 
 RUN mkdir -p /app/fonts && \
     wget -O /app/fonts/NotoSansGeorgian-Regular.ttf \
-    "https://github.com/notofonts/georgian/raw/main/fonts/NotoSansGeorgian/hinted/ttf/NotoSansGeorgian-Regular.ttf" && \
+    "https://fonts.gstatic.com/s/notosansgeorgian/v42/PlIaFke5O6RzLfvNNVSitxkr76PRHBC4Ytyq-Gof7PUs4S7zWn-8YDB09HFNdpvnzVj-f5WK0OQV.ttf" && \
     fc-cache -f
 
 WORKDIR /app
