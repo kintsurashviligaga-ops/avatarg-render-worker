@@ -6,7 +6,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci --only=production
 
-# Copy TypeScript source and config
+# Copy TypeScript config and source
 COPY tsconfig.json ./
 COPY worker/ ./worker/
 
@@ -18,13 +18,13 @@ RUN npm install -g typescript && \
 # Production image
 FROM node:20-alpine
 
-# Install FFmpeg and required tools
+# Install FFmpeg and tools
 RUN apk add --no-cache \
     ffmpeg \
     fontconfig \
     ttf-dejavu
 
-# Create fonts directory (empty for now)
+# Create fonts directory
 RUN mkdir -p /app/fonts
 
 WORKDIR /app
