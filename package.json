@@ -1,13 +1,23 @@
 {
   "name": "avatarg-render-worker",
   "version": "1.0.0",
-  "private": true,
+  "description": "AvatarG Production Render Worker - Georgian AI video generation",
   "type": "module",
+  "main": "dist/render-worker.js",
   "scripts": {
-    "start": "node src/worker.js",
-    "worker": "node src/worker.js"
+    "build": "tsc",
+    "start": "node dist/render-worker.js",
+    "dev": "tsc && node dist/render-worker.js",
+    "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.39.5"
+    "@supabase/supabase-js": "^2.39.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.4",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   }
 }
